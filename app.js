@@ -3,7 +3,7 @@ const fs = require("fs");
 const app = express();
 const port = process.env.PORT || 3001;
 
-// Function to read like count from file
+// Function to read like count from  file
 function readLikeCount() {
   try {
     const data = fs.readFileSync("likeCount.json", "utf8");
