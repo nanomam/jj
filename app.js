@@ -16,14 +16,27 @@ const html = `
     <title>Hello from Render!</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <script>
-      setTimeout(() => {
-        confetti({
-          particleCount: 100,
-          spread: 70,
-          origin: { y: 0.6 },
-          disableForReducedMotion: true
+      document.addEventListener("DOMContentLoaded", function() {
+        const likeButton = document.getElementById('likeButton');
+        const likeCountDisplay = document.getElementById('likeCount');
+
+        // Check if user has already liked
+        const hasLiked = localStorage.getItem('liked');
+        if (hasLiked) {
+          likeButton.disabled = true;
+        }
+
+        likeButton.addEventListener('click', function() {
+          // Increment like count
+          let likeCount = parseInt(likeCountDisplay.textContent);
+          likeCount++;
+          likeCountDisplay.textContent = likeCount;
+
+          // Disable like button and save like status
+          likeButton.disabled = true;
+          localStorage.setItem('liked', 'true');
         });
-      }, 500);
+      });
     </script>
     <style>
       @import url("https://p.typekit.net/p.css?s=1&k=vnd5zic&ht=tk&f=39475.39476.39477.39478.39479.39480.39481.39482&a=18673890&app=typekit&e=css");
@@ -54,7 +67,9 @@ const html = `
   </head>
   <body>
     <section>
-      Hello from Render!
+      <h1>Hello from Render!</h1>
+      <p>Like count: <span id="likeCount">0</span></p>
+      <button id="likeButton">Like</button>
     </section>
   </body>
 </html>
