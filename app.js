@@ -1,8 +1,36 @@
 const express = require("express");
+const fs = require("fs");
 const app = express();
 const port = process.env.PORT || 3001;
 
-app.get("/", (req, res) => res.type('html').send(html));
+// Function to read like count from file
+function readLikeCount() {
+  try {
+    const data = fs.readFileSync("likeCount.json", "utf8");
+    return JSON.parse(data).count;
+  } catch (err) {
+    // If file doesn't exist or there's an error, return 0
+    return 0;
+  }
+}
+
+// Function to write like count to file
+function writeLikeCount(count) {
+  const data = { count: count };
+  fs.writeFileSync("likeCount.json", JSON.stringify(data));
+}
+
+app.get("/", (req, res) => {
+  const likeCount = readLikeCount();
+  res.type('html').send(html.replace('{{likeCount}}', likeCount.toString()));
+});
+
+app.post("/like", (req, res) => {
+  let likeCount = readLikeCount();
+  likeCount++;
+  writeLikeCount(likeCount);
+  res.sendStatus(200);
+});
 
 const server = app.listen(port, () => console.log(`Example app listening on port ${port}!`));
 
@@ -20,21 +48,15 @@ const html = `
         const likeButton = document.getElementById('likeButton');
         const likeCountDisplay = document.getElementById('likeCount');
 
-        // Check if user has already liked
-        const hasLiked = localStorage.getItem('liked');
-        if (hasLiked) {
-          likeButton.disabled = true;
-        }
-
         likeButton.addEventListener('click', function() {
-          // Increment like count
-          let likeCount = parseInt(likeCountDisplay.textContent);
-          likeCount++;
-          likeCountDisplay.textContent = likeCount;
-
-          // Disable like button and save like status
-          likeButton.disabled = true;
-          localStorage.setItem('liked', 'true');
+          fetch('/like', { method: 'POST' })
+            .then(() => {
+              let likeCount = parseInt(likeCountDisplay.textContent);
+              likeCount++;
+              likeCountDisplay.textContent = likeCount;
+              likeButton.disabled = true;
+            })
+            .catch(err => console.error('Error liking:', err));
         });
       });
     </script>
@@ -68,7 +90,7 @@ const html = `
   <body>
     <section>
       <h1>Hello from Render!</h1>
-      <p>Like count: <span id="likeCount">0</span></p>
+      <p>Like count: <span id="likeCount">{{likeCount}}</span></p>
       <button id="likeButton">Like</button>
     </section>
   </body>
