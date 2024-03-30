@@ -1,37 +1,41 @@
 const express = require('express');
 const fs = require('fs');
-
 const app = express();
-const port = 3000;
+const PORT = 3000;
 
-// Initial like count (stored in likes.json)
-let likes = 0;
+// Serve static files from the 'public' directory
+app.use(express.static('public'));
 
-// Load initial like count from JSON file (error handling included)
-try {
-  const data = fs.readFileSync('likes.json', 'utf8');
-  likes = JSON.parse(data).likes || 0; // Default to 0 if no initial value
-} catch (err) {
-  console.error('Error reading likes.json:', err);
-}
+// Body parser middleware to parse request bodies
+app.use(express.json());
 
-// Route to serve the main HTML file
-app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/index.html');
+// Route to handle the like button click
+app.post('/like', (req, res) => {
+  const likesFilePath = './likes.json';
+  
+  // Read the current likes from the file
+  fs.readFile(likesFilePath, (err, data) => {
+    if (err && err.code === 'ENOENT') {
+      // If the file does not exist, create it with initial data
+      const initialData = { likes: 1 };
+      fs.writeFile(likesFilePath, JSON.stringify(initialData), (err) => {
+        if (err) throw err;
+        res.json(initialData);
+      });
+    } else if (err) {
+      throw err;
+    } else {
+      // If the file exists, increment the like count and save
+      const fileData = JSON.parse(data);
+      fileData.likes += 1;
+      fs.writeFile(likesFilePath, JSON.stringify(fileData), (err) => {
+        if (err) throw err;
+        res.json(fileData);
+      });
+    }
+  });
 });
 
-// Route to handle like button clicks (asynchronous for smoother experience)
-app.post('/like', async (req, res) => {
-  try {
-    likes++; // Increment like count
-    await fs.promises.writeFile('likes.json', JSON.stringify({ likes })); // Update JSON file
-    res.json({ likes }); // Send updated like count back to client
-  } catch (err) {
-    console.error('Error updating likes.json:', err);
-    res.status(500).json({ error: 'Failed to update likes' });
-  }
-});
-
-app.listen(port, () => {
-  console.log(`Server listening on port ${port}`);
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });
