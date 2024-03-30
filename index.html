@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Like Button</title>
+  <script src="script.js"></script>
+</head>
+<body>
+  <h1>Like Counter: <span id="like-count">0</span></h1>
+  <button id="like-button">Like</button>
+
+  <script>
+    const likeCountEl = document.getElementById('like-count');
+    const likeButton = document.getElementById('like-button');
+
+    likeButton.addEventListener('click', async () => {
+      try {
+        const response = await fetch('/like'); // Fetch updated like count
+        const data = await response.json();
+        likeCountEl.textContent = data.likes; // Update displayed like count
+      } catch (err) {
+        console.error('Error fetching likes:', err); // Handle errors on client-side
+      }
+    });
+  </script>
+</body>
+</html>
